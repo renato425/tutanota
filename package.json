@@ -1,0 +1,15 @@
+{
+  "name": "tutanota",
+  "version": "0.0.1",
+  "description": "Conexão com o tutanota-mail",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Guilherme Renato <contatoclash6@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "events": "^3.3.0",
+    "puppeteer": "^10.0.0"
+  }
+}
