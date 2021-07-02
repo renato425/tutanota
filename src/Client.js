@@ -9,7 +9,7 @@ class main {
     constructor(object = {}) {
         (async () => {
             const browser = await puppeteer.launch({
-                headless: true
+                headless: false
             })
             const page = await browser.newPage()
             pagev['page'] = page
@@ -34,10 +34,16 @@ class main {
     }
     email() {
         return {
-            async sendMail(destinatario, assunto, corpo) {
+            async sendMail(destinatario, assunto, senha, corpo) {
                 await pagev.page.click('button[class="limit-width noselect bg-transparent button-width-fixed button-height"]')
+                await pagev.page.waitForSelector('input[aria-label="Para"]')
                 await pagev.page.type('input[aria-label="Para"]', destinatario)
                 await pagev.page.type('input[aria-label="Assunto"]', assunto)
+                await pagev.page.click(`input[aria-label="Senha para ${destinatario}"]`)
+                await pagev.page.keyboard.type(senha)
+                // for (let i = 0; i < senha.length; i++) {
+                    // await pagev.page.keyboard.press('Backspace')
+                // }
                 await pagev.page.click('div[role="textbox"]')
                 for (let i = 0; i < 88; i++) {
                     await pagev.page.keyboard.press('Backspace')
@@ -47,6 +53,7 @@ class main {
             },
             async getMailsName(viewed, callback) {
                 if (viewed == false) {
+                await pagev.page.waitForSelector('div[class="text-ellipsis flex-grow b"]')
                 let divs = await pagev.page.$$('div[class="text-ellipsis flex-grow b"]')
                 let arrayReturn = []
                 for (const i in divs) {
@@ -57,8 +64,10 @@ class main {
                 }
                 return callback(arrayReturn)
             } else if (viewed == true) {
+                await pagev.page.waitForSelector('div[class="text-ellipsis flex-grow"]')
                 let divs = await pagev.page.$$('div[class="text-ellipsis flex-grow"]')
                 let arrayReturn = []
+                // console.log(divs)
                 for (const i in divs) {
                     const element = await divs[i].getProperty('innerText')
                     if (element._remoteObject.value !== '') {
@@ -72,7 +81,8 @@ class main {
                 if (typeof viewed !== 'boolean' || typeof name !== 'string') throw new Error('Parece que tem algo errado com o `getMaislByName`')
                 let arrayReturn = []
                 if (viewed == true) {
-                let divs = await pagev.page.$$('div[class="text-ellipsis flex-grow"]')
+                    await pagev.page.waitForSelector('div[class="text-ellipsis flex-grow"]')
+                    let divs = await pagev.page.$$('div[class="text-ellipsis flex-grow"]')
                 for (const i in divs) {
                     const element = await divs[i].getProperty('innerText')
                     if (element._remoteObject.value !== '' && element._remoteObject.value == name) {
@@ -91,10 +101,12 @@ class main {
                             minute: date.split(' • ')[1], 
                         }
                         let body = await pagev.page.$eval('div[dir="ltr"]', el => el.innerText)
-                        arrayReturn.push({sender: sender1, date: date, subjectMatter: assunto, body: body})
+                        await arrayReturn.push({sender: sender1, date: date, subjectMatter: assunto, body: body})
+                        await pagev.page.click('a[title="Entrada"]')
                     }
                 }
                 } else if (viewed == false) {
+                    await pagev.page.waitForSelector('div[class="text-ellipsis flex-grow b"]')
                     let divs = await pagev.page.$$('div[class="text-ellipsis flex-grow b"]')
                     for (const i in divs) {
                         const element = await divs[i].getProperty('innerText')
@@ -136,6 +148,13 @@ class main {
                             await sleep(5000)
                             await pagev.page.click('span[class="icon flex-center items-center button-icon"]')
                             await pagev.page.click('div[class="button-content flex items-center primary plr-button justify-center"]')
+                            await pagev.page.click('a[title="Rascunhos"]')
+                            await pagev.page.waitForSelector('a[title="Pastas"]')
+                            await pagev.page.click('a[title="Pastas"]')
+                            await pagev.page.waitForSelector('a[title="Entrada"]')
+                            // await sleep(5000)
+                            await pagev.page.click('a[title="Entrada"]')
+                            await sleep(3000)
                         }
                     }
                 },
@@ -152,6 +171,11 @@ class main {
                             arrayReturn.push(name)
                         }
                     }
+                    await pagev.page.waitForSelector('a[title="Pastas"]')
+                    await pagev.page.click('a[title="Pastas"]')
+                    await pagev.page.waitForSelector('a[title="Entrada"]')
+                    // await sleep(5000)
+                    await pagev.page.click('a[title="Entrada"]')
                     return callback(arrayReturn)
                 },
                 async getMailByName(name, call) {
@@ -161,15 +185,13 @@ class main {
             await sleep(3000)
             let arrayForReturn = []
             let names = await pagev.page.$$('div[class="text-ellipsis flex-grow"]')
+            let jaVerificado = false
             for (const i in names) {
-                if (await pagev.page.$eval(names[i]._remoteObject.description, el => el.innerText) == name) {
+                if (await pagev.page.$eval(names[i]._remoteObject.description, el => el.innerText) == name && jaVerificado == false) {
                     await pagev.page.click(names[i]._remoteObject.description)
                     await sleep(5000)
-                    let emailToSend = await pagev.page.$eval('div[class="small flex text-break selectable badge-line-height flex-wrap pt-s"]', el => el.innerText)
-                    emailToSend = {
-                        name: emailToSend.split(' <')[0],
-                        mail: emailToSend.split(' <')[1].replace('.', '')
-                    }
+                    let emailToSend = await pagev.page.$eval('[class="small flex text-break selectable badge-line-height flex-wrap pt-s"]', el => el.innerText)
+                    // emailToSend: emailToSend
                     let assunto = await pagev.page.$eval('div[class="subject text-break selectable"]', el => el.innerText)
                     let date = await pagev.page.$eval('small[class="date mt-xs content-fg"]', el => el.innerText)
                     date = {
@@ -177,14 +199,26 @@ class main {
                         monthly: date.split(' de ')[1].split(' • ')[0].replace('.', ''),
                         minute: date.split(' • ')[1]
                     }
-                    let body = await pagev.page.$eval('dir[div="ltr"]', el => el.innerText)
-                    arrayForReturn.push({emailToSender: emailToSend, date: date, subjectMatter: assunto, body: body})
+                    let body = await pagev.page.$eval('div[id="mail-body"]', el => el.innerText)
+                    // console.log(body)
+                    await arrayForReturn.push({emailToSender: emailToSend, date: date, subjectMatter: assunto, body: body})
+                    await pagev.page.click('a[title="Rascunhos"]')
+                    // await pagev.page.waitForSelector('[class="nav-button noselect flex-no-shrink items-center click plr-button no-text-decoration button-height flex-start"]', {timeout: 0})
+                    // await pagev.page.click('[class="nav-button noselect flex-no-shrink items-center click plr-button no-text-decoration button-height flex-start"]')
+                    await pagev.page.waitForSelector('a[title="Pastas"]')
+                    await pagev.page.click('a[title="Pastas"]')
+                    await pagev.page.waitForSelector('a[title="Entrada"]')
+                    // await sleep(5000)
+                    await pagev.page.click('a[title="Entrada"]')
+                    await sleep(3000)
+                    jaVerificado = true
                 }
             }
             return call(arrayForReturn)
+            }
+            // return call(arrayForReturn)
         }
     }
-}
 }
 
 
