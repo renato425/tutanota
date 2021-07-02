@@ -122,7 +122,7 @@ Parametro | Descrição | Tipo
 ----------|-----------|-------
 destinatario | Email para qual a mensagem será enviada! | String
 assunto | O assunto ou até o nome do email. | String
-senha | A senha do email 
+senha | A senha do email | String 
 corpo | A mensagem que conterá no email. | String
 
 
