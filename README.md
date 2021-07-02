@@ -23,7 +23,7 @@ yarn add tutanota
 
 * [Client](https://www.github.com/renato425/tutanota#client)
 * *    [waitForLogin](https://www.github.com/renato425/tutanota#waitforlogin)
-* *    [emails](https://www.github.com/renato425/tutanota#emails)
+* *    [email](https://www.github.com/renato425/tutanota#emails)
 * * *   [sendMail](https://www.github.com/renato425/tutanota#sendmail)
 * * *   [getMailsName](https://www.github.com/renato425/tutanota#getmailsname)
 * * *   [getMailsByName](https://www.github.com/renato425/tutanota#getmailsbyname)
@@ -48,7 +48,7 @@ const Client = new Tutanota.Client({email: 'yourtutanotamail@tutanota.com', pass
 
 Client.waitForLogin(async info => {
     console.log(info) // { dateLogged: timestamp(number), useOfTheApi: boolean }
-    await Client.emails().getMailsName(true, mail => {
+    await Client.email().getMailsName(true, mail => {
         console.log(mail) //object
     })
     await Client.drafts().getMails(mail => {
@@ -122,6 +122,7 @@ Parametro | Descrição | Tipo
 ----------|-----------|-------
 destinatario | Email para qual a mensagem será enviada! | String
 assunto | O assunto ou até o nome do email. | String
+senha | A senha do email 
 corpo | A mensagem que conterá no email. | String
 
 
